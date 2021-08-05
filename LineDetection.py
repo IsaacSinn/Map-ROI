@@ -1,9 +1,11 @@
 import cv2 as cv
 import numpy as np
+import imutils
 
 img = cv.imread('CoralReef1.jpg')
 gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
 hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
+output = img.copy()
 
 def emptyFunction():
     pass
@@ -24,6 +26,8 @@ cv.createTrackbar("VHigh", windowName, 0, 255, emptyFunction)
 
 cv.createTrackbar("CannyLow", "Canny", 0, 255, emptyFunction)
 cv.createTrackbar("CannyHigh", "Canny", 0, 255, emptyFunction)
+
+orb = cv.ORB_create()
 
 while True:
     HLow = cv.getTrackbarPos("HLow", windowName)
@@ -55,8 +59,31 @@ while True:
         UpperBlue = np.array([115, 255, 255])
 
         mask = cv.inRange(hsv, LowerBlue, UpperBlue)
-        grey = cv.bitwise_and(gray, gray, mask = mask)
+        cv.imshow("mask", mask)
 
+        filter = cv.bitwise_and(gray, gray, mask = mask)
+        cv.imshow("filter", filter)
+
+        KeyPoint = orb.detect(filter, None)
+        KeyPoint, des = orb.compute(filter, KeyPoint)
+
+        output = cv.drawKeypoints(output, KeyPoint, None, color = (0,255,0), flags = 0)
+        cv.imshow("output", output)
+
+
+        # Contours
+        '''
+        contours = cv.findContours(mask.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        contours = imutils.grab_contours(contours)
+        output = img.copy()
+
+        for c in contours:
+            cv.drawContours(output, [c], -1, (255, 0,0), 3)
+            cv.imshow('Contours', output)'''
+
+
+        # Hough Line Detection
+        '''rey = cv.bitwise_and(gray, gray, mask = mask)
         BlurGrey = cv.GaussianBlur(grey,(5, 5),0)
 
         edges = cv.Canny(BlurGrey, CannyLow, CannyHigh)
@@ -81,4 +108,4 @@ while True:
 
         # Draw the lines on the  image
         lines_edges = cv.addWeighted(img, 0.8, line_image, 1, 0)
-        cv.imshow("img", line_image)
+        cv.imshow("img", line_image)'''
